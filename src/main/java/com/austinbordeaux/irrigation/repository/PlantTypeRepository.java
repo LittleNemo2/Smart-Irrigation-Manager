@@ -1,4 +1,4 @@
-package com.austinbordeaux.irrigation.PlantTypeRepository;
+package com.austinbordeaux.irrigation.repository;
 
 import com.austinbordeaux.irrigation.model.PlantType;
 import org.springframework.data.jpa.repository.JpaRepository;
