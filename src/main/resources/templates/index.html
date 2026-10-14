@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Smart Irrigation Manager</title>
-</head>
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
 <body>
-<h1>Smart Irrigation Manager</h1>
-<p>Signed in as <strong th:text="${username}">user</strong></p>
+<header th:replace="~{fragments/layout :: tabs}"></header>
 
-<form th:action="@{/logout}" method="post">
-    <button type="submit">Sign out</button>
-</form>
+<section class="hero">
+    <h1>Smart Irrigation Manager<br>
+        <small class="muted">Bordeaux Landscaping LLC &middot; Mountain Home, Idaho</small>
+    </h1>
+</section>
 </body>
 </html>

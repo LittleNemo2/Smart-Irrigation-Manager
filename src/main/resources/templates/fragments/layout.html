@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | Smart Irrigation Manager'">Smart Irrigation Manager</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+<header th:fragment="tabs">
+    <div class="topbar">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn"
+                    th:text="'Sign out (' + ${currentUsername} + ')'">Sign out</button>
+        </form>
+    </div>
+    <nav class="tabs">
+        <a th:href="@{/}" th:classappend="${currentPath == '/'} ? 'active'">Home</a>
+        <a th:href="@{/properties}" th:classappend="${#strings.startsWith(currentPath, '/properties')} ? 'active'">Properties</a>
+        <a th:href="@{/weather}" th:classappend="${#strings.startsWith(currentPath, '/weather')} ? 'active'">Weather</a>
+        <a th:href="@{/reports}" th:classappend="${#strings.startsWith(currentPath, '/reports')} ? 'active'">Reports</a>
+        <a th:href="@{/savings}" th:classappend="${#strings.startsWith(currentPath, '/savings')} ? 'active'">Savings</a>
+        <a th:href="@{/contact}" th:classappend="${#strings.startsWith(currentPath, '/contact')} ? 'active'">Contact</a>
+    </nav>
+</header>
+</body>
+</html>
