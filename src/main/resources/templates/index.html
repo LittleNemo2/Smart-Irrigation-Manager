@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>Smart Irrigation Manager</title></head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smart Irrigation Manager</title>
+</head>
 <body>
 <h1>Smart Irrigation Manager</h1>
-<p>Bordeaux Landscaping LLC - it works!</p>
+<p>Signed in as <strong th:text="${username}">user</strong></p>
+
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Sign out</button>
+</form>
 </body>
 </html>
-
