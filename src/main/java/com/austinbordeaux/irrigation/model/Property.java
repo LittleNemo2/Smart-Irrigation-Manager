@@ -70,6 +70,7 @@ public class Property extends BaseEntity {
         return owner != null && user != null
                 && owner.getId() != null && owner.getId().equals(user.getId());
     }
+    public boolean isOnline() { return !zones.isEmpty() && zones.stream().allMatch(Zone::isOnline); }
 
     public List<Zone> getZones() {
         return Collections.unmodifiableList(zones);

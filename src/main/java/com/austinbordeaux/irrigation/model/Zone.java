@@ -36,6 +36,9 @@ public class Zone extends BaseEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(nullable = false)
+    private boolean online = true;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
@@ -133,4 +136,9 @@ public class Zone extends BaseEntity {
     public Property getProperty() {
         return property;
     }
+
+    public boolean isOnline() { return online; }
+
+    public void setOnline(boolean online) { this.online = online; }
+
 }
