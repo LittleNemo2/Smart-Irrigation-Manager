@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Contact')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <div class="title-bar">
+        <h1>Contact us</h1>
+        <p class="muted">Questions, problems or ideas? Send Bordeaux Landscaping a message.</p>
+    </div>
+
+    <section class="panel">
+        <p class="success" th:if="${success}" th:text="${success}"></p>
+        <!--/* Admin-only shortcut. The URL itself is protected by SecurityConfig. */-->
+        <p th:if="${isAdmin}"><a th:href="@{/admin/feedback}" class="btn">View feedback inbox</a></p>
+
+        <form th:action="@{/contact}" th:object="${form}" method="post" novalidate>
+            <div class="form-row">
+                <label for="name">Your name</label>
+                <input type="text" th:field="*{name}" maxlength="80">
+                <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="email">Email</label>
+                <input type="email" th:field="*{email}" maxlength="120">
+                <p class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="subject">Subject</label>
+                <input type="text" th:field="*{subject}" maxlength="100">
+                <p class="error" th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="message">Message</label>
+                <textarea th:field="*{message}" rows="6" maxlength="2000"></textarea>
+                <p class="error" th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></p>
+            </div>
+
+            <button type="submit" class="btn primary">Send</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

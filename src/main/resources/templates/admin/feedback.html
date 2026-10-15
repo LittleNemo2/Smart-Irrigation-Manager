@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Feedback inbox')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <div class="title-bar">
+        <h1>Feedback inbox</h1>
+        <p class="muted" th:text="|${#lists.size(messages)} message(s), newest first|">0 messages</p>
+    </div>
+
+    <section class="panel">
+        <table>
+            <thead>
+            <tr>
+                <th>Received</th>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${messages}">
+                <td th:text="${#temporals.format(f.createdAt, 'MMM d, yyyy h:mm a')}">Oct 15, 2026</td>
+                <td>
+                    <span th:text="${f.name}">Name</span><br>
+                    <span class="muted" th:text="|${f.email} (${f.submittedBy})|">email</span>
+                </td>
+                <td th:text="${f.subject}">Subject</td>
+                <!--/* th:text escapes HTML, so a message containing <script> just shows as text. */-->
+                <td style="text-align: left; white-space: pre-wrap" th:text="${f.message}">Message</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(messages)}">
+                <td colspan="4" class="muted">No feedback yet.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

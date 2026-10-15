@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Edit zone' : 'Add zone')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <div class="title-bar">
+        <h1 th:text="${editing} ? 'Edit zone' : 'Add zone'">Add zone</h1>
+        <p class="muted" th:text="${property.name}">Property</p>
+    </div>
+
+    <section class="panel">
+        <!--/* Posts to /properties/{id}/zones (add) or /properties/{id}/zones/{zoneId} (edit). */-->
+        <form th:action="${editing}
+                  ? @{/properties/{p}/zones/{z}(p=${property.id}, z=${zoneId})}
+                  : @{/properties/{p}/zones(p=${property.id})}"
+              th:object="${form}" method="post" novalidate>
+
+            <div class="form-row">
+                <label for="name">Zone name</label>
+                <input type="text" th:field="*{name}" maxlength="60">
+                <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+            </div>
+
+            <!--/* Dropdown filled from the plant_type table (scalability).
+                   th:field selects the current value when editing. */-->
+            <div class="form-row">
+                <label for="plantTypeId">Plant type</label>
+                <select th:field="*{plantTypeId}">
+                    <option value="">-- Choose a plant type --</option>
+                    <option th:each="pt : ${plantTypes}" th:value="${pt.id}"
+                            th:text="|${pt.name} (Kc ${pt.cropCoefficient})|">Turf</option>
+                </select>
+                <p class="error" th:if="${#fields.hasErrors('plantTypeId')}" th:errors="*{plantTypeId}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="flowRateGpm">Flow rate (gallons per minute)</label>
+                <input type="number" step="0.1" th:field="*{flowRateGpm}">
+                <p class="error" th:if="${#fields.hasErrors('flowRateGpm')}" th:errors="*{flowRateGpm}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="moistureThreshold">Moisture threshold (%): water when soil drops below this</label>
+                <input type="number" step="0.5" th:field="*{moistureThreshold}">
+                <p class="error" th:if="${#fields.hasErrors('moistureThreshold')}" th:errors="*{moistureThreshold}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="targetMoisture">Target moisture (%): water up to this level</label>
+                <input type="number" step="0.5" th:field="*{targetMoisture}">
+                <p class="error" th:if="${#fields.hasErrors('targetMoisture')}" th:errors="*{targetMoisture}"></p>
+                <!--/* Cross-field error from ZoneForm.isThresholdBelowTarget(). */-->
+                <p class="error" th:if="${#fields.hasErrors('thresholdBelowTarget')}"
+                   th:errors="*{thresholdBelowTarget}"></p>
+            </div>
+
+            <!--/* Checkbox: th:field adds a hidden marker, so unchecked is sent as false. */-->
+            <div class="form-row">
+                <label><input type="checkbox" th:field="*{online}"> Controller online</label>
+            </div>
+
+            <button type="submit" class="btn primary">Save</button>
+            <a th:href="@{/properties/{id}(id=${property.id})}" class="btn">Cancel</a>
+        </form>
+    </section>
+</main>
+</body>
+</html>
