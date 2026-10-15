@@ -138,3 +138,12 @@ form.inline { display: inline; margin: 0; }
 
 td { white-space: normal; }
 td:has(.status-dot) { white-space: nowrap; }
+
+.form-row input[type="checkbox"] { width: auto; margin: 0 8px 0 0; vertical-align: middle; }
+.form-row label:has(input[type="checkbox"]) { display: flex; align-items: center; }
+
+.btn.small { padding: 2px 10px; font-size: 0.8rem; }
+.schedule-line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin-bottom: 6px; }
+.days { display: flex; flex-wrap: wrap; gap: 14px; }
+.days .day { display: flex; align-items: center; gap: 6px; margin: 0; }
+.days input[type="checkbox"] { width: auto; margin: 0; }

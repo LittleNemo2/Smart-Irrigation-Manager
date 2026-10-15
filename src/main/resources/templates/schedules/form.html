@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Edit schedule' : 'Add schedule')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <div class="title-bar">
+        <h1 th:text="${editing} ? 'Edit schedule' : 'Add schedule'">Add schedule</h1>
+        <!--/* zone.displayName = "Property / Zone" (polymorphic getDisplayName from BaseEntity). */-->
+        <p class="muted" th:text="${zone.displayName}">Property / Zone</p>
+    </div>
+
+    <section class="panel">
+        <form th:action="${editing}
+                  ? @{/properties/{p}/zones/{z}/schedules/{s}(p=${zone.property.id}, z=${zone.id}, s=${scheduleId})}
+                  : @{/properties/{p}/zones/{z}/schedules(p=${zone.property.id}, z=${zone.id})}"
+              th:object="${form}" method="post" novalidate>
+
+            <!--/* type="time" gives a time picker. th:field formats LocalTime as HH:mm. */-->
+            <div class="form-row">
+                <label for="startTime">Start time</label>
+                <input type="time" th:field="*{startTime}">
+                <p class="error" th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}"></p>
+            </div>
+
+            <!--/* One checkbox per day. th:field ticks the days already in the form. */-->
+            <div class="form-row">
+                <label>Days</label>
+                <div class="days">
+                    <label th:each="d : ${allDays}" class="day">
+                        <input type="checkbox" th:field="*{days}" th:value="${d}">
+                        <span th:text="${#strings.capitalize(#strings.toLowerCase(d.name()))}">Monday</span>
+                    </label>
+                </div>
+                <p class="error" th:if="${#fields.hasErrors('days')}" th:errors="*{days}"></p>
+            </div>
+
+            <div class="form-row">
+                <label for="durationMinutes">Duration (minutes)</label>
+                <input type="number" min="1" max="240" th:field="*{durationMinutes}">
+                <p class="error" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></p>
+            </div>
+
+            <div class="form-row">
+                <label><input type="checkbox" th:field="*{enabled}"> Enabled (uncheck to pause)</label>
+            </div>
+
+            <button type="submit" class="btn primary">Save</button>
+            <a th:href="@{/properties/{id}(id=${zone.property.id})}" class="btn">Cancel</a>
+        </form>
+    </section>
+</main>
+</body>
+</html>

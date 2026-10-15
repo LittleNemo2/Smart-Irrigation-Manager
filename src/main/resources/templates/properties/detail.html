@@ -8,20 +8,22 @@
     <div class="title-bar">
         <h1 th:text="${property.name}">Property 1</h1>
         <div class="actions">
-            <a th:href="@{/properties/{id}/edit(id=${property.id})}" class="btn">Edit</a>
+            <a th:href="@{/properties/{id}/edit(id=${property.id})}" class="btn">Edit property</a>
             <a th:href="@{/properties}" class="btn">Back</a>
         </div>
     </div>
 
-    <p class="success" th:if="${success}" th:text="${success}"></p>
-
     <section class="panel">
+        <p class="success" th:if="${success}" th:text="${success}"></p>
+
         <p>
             <span th:text="${property.address}">Address</span><br>
             <span class="muted"
                   th:text="|Lat ${property.latitude}, Lon ${property.longitude} · Owner: ${property.owner.fullName}|">coords</span>
         </p>
         <p th:if="${!#strings.isEmpty(property.notes)}" th:text="${property.notes}">Notes</p>
+
+        <p><a th:href="@{/properties/{id}/zones/new(id=${property.id})}" class="btn primary">+ Add zone</a></p>
 
         <table>
             <thead>
@@ -31,27 +33,54 @@
                 <th>Schedule</th>
                 <th>Sprinkler probability of running</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="z : ${property.zones}">
-                <td th:text="${z.name}">Front Lawn</td>
+                <td>
+                    <span th:text="${z.name}">Front Lawn</span><br>
+                    <span class="muted"
+                          th:text="|${z.flowRateGpm} GPM · ${z.moistureThreshold}–${z.targetMoisture}%|">8 GPM</span>
+                </td>
                 <td th:text="${z.plantType.name}">Turf</td>
                 <td>
-
-                    <div th:each="s : ${z.schedules}"
-                         th:text="|${s.daysLabel} at ${#temporals.format(s.startTime, 'h:mm a')} for ${s.durationMinutes} min|">
-                        Daily at 5:30 AM for 20 min</div>
+                    <!--/* Each schedule on its own line, with small Edit/Delete buttons. */-->
+                    <div th:each="s : ${z.schedules}" class="schedule-line">
+                        <span th:classappend="${s.enabled} ? '' : 'muted'"
+                              th:text="|${s.daysLabel} at ${#temporals.format(s.startTime, 'h:mm a')} for ${s.durationMinutes} min|">
+                            Daily at 5:30 AM for 20 min</span>
+                        <span th:if="${!s.enabled}" class="muted">(paused)</span>
+                        <a th:href="@{/properties/{p}/zones/{z}/schedules/{s}/edit(p=${property.id}, z=${z.id}, s=${s.id})}"
+                           class="btn small">Edit</a>
+                        <form th:action="@{/properties/{p}/zones/{z}/schedules/{s}/delete(p=${property.id}, z=${z.id}, s=${s.id})}"
+                              method="post" class="inline"
+                              onsubmit="return confirm('Delete this schedule?');">
+                            <button type="submit" class="btn small danger">Delete</button>
+                        </form>
+                    </div>
                     <span th:if="${#lists.isEmpty(z.schedules)}" class="muted">No schedule</span>
+                    <div>
+                        <a th:href="@{/properties/{p}/zones/{z}/schedules/new(p=${property.id}, z=${z.id})}"
+                           class="btn small">+ Schedule</a>
+                    </div>
                 </td>
                 <td>—</td>
-                <td>
+                <td style="white-space: nowrap">
                     <span class="status-dot" th:classappend="${z.online} ? 'online' : 'offline'"></span>
                     <span th:text="${z.online} ? 'Online' : 'Offline'">Online</span>
                 </td>
+                <td class="actions">
+                    <a th:href="@{/properties/{p}/zones/{z}/edit(p=${property.id}, z=${z.id})}" class="btn">Edit</a>
+                    <form th:action="@{/properties/{p}/zones/{z}/delete(p=${property.id}, z=${z.id})}"
+                          method="post" class="inline"
+                          onsubmit="return confirm('Delete this zone and its schedules?');">
+                        <button type="submit" class="btn danger">Delete</button>
+                    </form>
+                </td>
             </tr>
             <tr th:if="${#lists.isEmpty(property.zones)}">
-                <td colspan="5" class="muted">No zones yet.</td>
+                <td colspan="6" class="muted">No zones yet. Click "+ Add zone" to create one.</td>
             </tr>
             </tbody>
         </table>
