@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Properties')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+
+    <div class="title-bar">
+        <h1>Properties</h1>
+        <form th:action="@{/properties}" method="get" class="search">
+            <input type="search" name="q" th:value="${q}" placeholder="Search name or address"
+                   maxlength="80" aria-label="Search properties">
+            <button type="submit" class="btn">Search</button>
+            <a th:if="${!#strings.isEmpty(q)}" th:href="@{/properties}" class="btn">Clear</a>
+        </form>
+    </div>
+
+    <section class="panel">
+        <p class="success" th:if="${success}" th:text="${success}"></p>
+        <p><a th:href="@{/properties/new}" class="btn primary">+ Add property</a></p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Property</th>
+                <th>Owner</th>
+                <th>Address</th>
+                <th>Sprinkler Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${properties}">
+                <td><a th:href="@{/properties/{id}(id=${p.id})}" th:text="${p.name}">Property 1</a></td>
+                <td th:text="${p.owner.fullName}">Owner</td>
+                <td th:text="${p.address}">Address</td>
+                <td>
+                    <!--/* p.online calls Property.isOnline(): green only if every zone is online. */-->
+                    <span class="status-dot" th:classappend="${p.online} ? 'online' : 'offline'"></span>
+                    <span th:text="${p.online} ? 'Online' : 'Offline'">Online</span>
+                </td>
+                <td class="actions">
+                    <a th:href="@{/properties/{id}/edit(id=${p.id})}" class="btn">Edit</a>
+                    <!--/* Delete is a small POST form. th:action adds the CSRF token. */-->
+                    <form th:action="@{/properties/{id}/delete(id=${p.id})}" method="post" class="inline"
+                          onsubmit="return confirm('Delete this property and all of its zones?');">
+                        <button type="submit" class="btn danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(properties)}">
+                <td colspan="5" class="muted">No properties match your search.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

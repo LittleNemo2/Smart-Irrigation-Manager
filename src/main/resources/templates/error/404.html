@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Not found')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <section class="panel">
+        <h1>Page not found</h1>
+        <!--/* Same message whether the record doesn't exist or belongs to someone else,
+               so users can't probe for other people's IDs. */-->
+        <p class="muted">That page doesn't exist, or you don't have access to it.</p>
+        <p><a th:href="@{/properties}" class="btn primary">Back to properties</a></p>
+    </section>
+</main>
+</body>
+</html>
