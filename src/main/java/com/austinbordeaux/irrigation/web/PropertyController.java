@@ -1,7 +1,14 @@
 package com.austinbordeaux.irrigation.web;
 
+import com.austinbordeaux.irrigation.engine.Decision;
+import com.austinbordeaux.irrigation.engine.IrrigationDecisionEngine;
 import com.austinbordeaux.irrigation.model.AppUser;
+import com.austinbordeaux.irrigation.model.Property;
+import com.austinbordeaux.irrigation.model.Zone;
+import com.austinbordeaux.irrigation.service.IrrigationService;
 import com.austinbordeaux.irrigation.service.PropertyService;
+import com.austinbordeaux.irrigation.weather.WeatherReport;
+import com.austinbordeaux.irrigation.weather.WeatherService;
 import com.austinbordeaux.irrigation.web.form.PropertyForm;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -16,15 +23,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/properties")
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final WeatherService weatherService;
+    private final IrrigationDecisionEngine decisionEngine;
+    private final IrrigationService irrigationService;
 
-    public PropertyController(PropertyService propertyService) {
+    public PropertyController(PropertyService propertyService, WeatherService weatherService,
+                              IrrigationDecisionEngine decisionEngine, IrrigationService irrigationService) {
         this.propertyService = propertyService;
+        this.weatherService = weatherService;
+        this.decisionEngine = decisionEngine;
+        this.irrigationService = irrigationService;
     }
 
     @GetMapping
@@ -58,8 +74,24 @@ public class PropertyController {
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Principal principal, Model model) {
         AppUser user = propertyService.currentUser(principal);
-        model.addAttribute("property", propertyService.get(id, user));
+        Property property = propertyService.get(id, user);
+        WeatherReport weather = weatherService.forecast(property.getLatitude(), property.getLongitude());
+        Map<Long, Decision> decisions = new HashMap<>();
+        for (Zone zone : property.getZones()) {
+            decisions.put(zone.getId(), decisionEngine.decide(zone, weather));
+        }
+        model.addAttribute("property", property);
+        model.addAttribute("weather", weather);
+        model.addAttribute("decisions", decisions);
+        model.addAttribute("events", irrigationService.recentFor(property));
         return "properties/detail";
+    }
+
+    @PostMapping("/{id}/run-check")
+    public String runCheck(@PathVariable Long id, Principal principal, RedirectAttributes flash) {
+        int checked = irrigationService.runCheckNow(id, propertyService.currentUser(principal));
+        flash.addFlashAttribute("success", "Checked " + checked + " zone(s). See Recent activity below.");
+        return "redirect:/properties/" + id;
     }
 
     @GetMapping("/{id}/edit")

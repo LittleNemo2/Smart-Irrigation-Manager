@@ -147,3 +147,25 @@ td:has(.status-dot) { white-space: nowrap; }
 .days { display: flex; flex-wrap: wrap; gap: 14px; }
 .days .day { display: flex; align-items: center; gap: 6px; margin: 0; }
 .days input[type="checkbox"] { width: auto; margin: 0; }
+
+.weather-now { text-align: center; }
+.weather-now .temp { font-size: 4rem; font-weight: 700; line-height: 1.1; margin: 8px 0; }
+.weather-now .conditions { font-size: 1.3rem; margin: 0 0 8px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 999px; border: 1px solid currentColor; font-size: 0.85rem; }
+.badge.live { color: var(--online); }
+.badge.sim { color: #f1c40f; }
+.title-bar select { min-width: 220px; }
+
+.more-info { display: block; margin-top: 4px; font-size: 0.75rem; color: var(--accent); text-decoration: underline; }
+.decision[open] .more-info { display: none; }
+
+.prob { display: block; font-size: 1.3rem; font-weight: 700; }
+.prob.high { color: var(--online); }
+.prob.medium { color: #f1c40f; }
+.prob.low { color: #95a5a6; }
+
+.outcome { font-weight: 600; }
+.outcome.watered { color: var(--accent); }
+.outcome.skipped { color: var(--online); }
+
+.decision summary::marker { content: ""; }

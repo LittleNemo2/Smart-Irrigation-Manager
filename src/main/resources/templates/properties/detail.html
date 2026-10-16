@@ -23,7 +23,17 @@
         </p>
         <p th:if="${!#strings.isEmpty(property.notes)}" th:text="${property.notes}">Notes</p>
 
-        <p><a th:href="@{/properties/{id}/zones/new(id=${property.id})}" class="btn primary">+ Add zone</a></p>
+        <p class="muted"
+           th:text="|Today: ${weather.description()}, ${weather.today().rainChance()}% chance of rain, ET₀ ${#numbers.formatDecimal(weather.today().et0Inches(), 1, 2)} in.|">
+            Today's weather</p>
+
+        <div class="actions">
+            <a th:href="@{/properties/{id}/zones/new(id=${property.id})}" class="btn primary">+ Add zone</a>
+            <!--/* 5.3a: decide and water/skip every runnable zone right now (POST + CSRF). */-->
+            <form th:action="@{/properties/{id}/run-check(id=${property.id})}" method="post" class="inline">
+                <button type="submit" class="btn">Run check now</button>
+            </form>
+        </div>
 
         <table>
             <thead>
@@ -42,10 +52,13 @@
                     <span th:text="${z.name}">Front Lawn</span><br>
                     <span class="muted"
                           th:text="|${z.flowRateGpm} GPM · ${z.moistureThreshold}–${z.targetMoisture}%|">8 GPM</span>
+                    <br><span class="muted"
+                              th:text="|Soil now ${#numbers.formatDecimal(z.currentMoisture, 1, 0)}%|">Soil now 25%</span>
                 </td>
+
                 <td th:text="${z.plantType.name}">Turf</td>
+
                 <td>
-                    <!--/* Each schedule on its own line, with small Edit/Delete buttons. */-->
                     <div th:each="s : ${z.schedules}" class="schedule-line">
                         <span th:classappend="${s.enabled} ? '' : 'muted'"
                               th:text="|${s.daysLabel} at ${#temporals.format(s.startTime, 'h:mm a')} for ${s.durationMinutes} min|">
@@ -65,22 +78,75 @@
                            class="btn small">+ Schedule</a>
                     </div>
                 </td>
-                <td>—</td>
-                <td style="white-space: nowrap">
-                    <span class="status-dot" th:classappend="${z.online} ? 'online' : 'offline'"></span>
-                    <span th:text="${z.online} ? 'Online' : 'Offline'">Online</span>
+
+                <td th:with="d=${decisions[z.id]}">
+                    <details class="decision">
+                        <summary>
+                            <span class="prob" th:classappend="${d.level()}" th:text="|${d.probability()}%|">62%</span>
+                            <span class="muted" th:text="${d.summary()}">Will water</span>
+                            <span class="more-info" th:unless="${#lists.isEmpty(d.results())}">More info ▾</span>
+                        </summary>
+                        <ul>
+                            <li th:each="r : ${d.results()}">
+                                <strong th:text="${r.rule()}">Soil moisture</strong>
+                                (<span th:text="${r.adjustment() >= 0 ? '+' + r.adjustment() : r.adjustment()}">+10</span>):
+                                <span th:text="${r.reason()}">reason</span>
+                            </li>
+                        </ul>
+                    </details>
                 </td>
+
+                <td style="white-space: nowrap">
+                    <span class="status-dot" th:classappend="${z.runnable} ? 'online' : 'offline'"></span>
+                    <span th:text="${z.statusLabel}">Online</span>
+                </td>
+
                 <td class="actions">
                     <a th:href="@{/properties/{p}/zones/{z}/edit(p=${property.id}, z=${z.id})}" class="btn">Edit</a>
                     <form th:action="@{/properties/{p}/zones/{z}/delete(p=${property.id}, z=${z.id})}"
                           method="post" class="inline"
-                          onsubmit="return confirm('Delete this zone and its schedules?');">
+                          onsubmit="return confirm('Delete this zone, its schedules and history?');">
                         <button type="submit" class="btn danger">Delete</button>
                     </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(property.zones)}">
                 <td colspan="6" class="muted">No zones yet. Click "+ Add zone" to create one.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!--/* 5.3a: last 10 watering decisions for this property. */-->
+    <section class="panel">
+        <h2>Recent activity</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>When</th>
+                <th>Zone</th>
+                <th>Outcome</th>
+                <th>Probability</th>
+                <th>Soil before</th>
+                <th>Gallons used</th>
+                <th>Gallons saved</th>
+                <th>Trigger</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${events}">
+                <td th:text="${#temporals.format(e.runAt, 'MMM d, h:mm a')}">Oct 15, 5:30 AM</td>
+                <td th:text="${e.zone.name}">Front Lawn</td>
+                <td><span class="outcome" th:classappend="${#strings.toLowerCase(e.outcome.name())}"
+                          th:text="${e.outcome.label}">Watered</span></td>
+                <td th:text="|${e.probability}%|">84%</td>
+                <td th:text="|${#numbers.formatDecimal(e.moistureBefore, 1, 0)}%|">18%</td>
+                <td th:text="${#numbers.formatDecimal(e.gallonsUsed, 1, 0)}">160</td>
+                <td th:text="${#numbers.formatDecimal(e.gallonsSaved, 1, 0)}">0</td>
+                <td th:text="${e.manual} ? 'Manual' : 'Scheduled'">Manual</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(events)}">
+                <td colspan="8" class="muted">No activity yet. Click "Run check now" to make the first decision.</td>
             </tr>
             </tbody>
         </table>

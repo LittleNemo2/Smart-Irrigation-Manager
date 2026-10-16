@@ -1,11 +1,66 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Weather')}"></head>
 <body>
 <header th:replace="~{fragments/layout :: tabs}"></header>
-<div class="panel">
-    <h2>Weather</h2>
-    <p class="muted">The live forecast for each property will appear here.</p>
-</div>
+
+<main class="container">
+    <div class="title-bar">
+        <h1>Weather</h1>
+        <form th:if="${!#lists.isEmpty(properties)}" th:action="@{/weather}" method="get" class="search">
+            <select name="propertyId" aria-label="Property" onchange="this.form.submit()">
+                <option th:each="p : ${properties}" th:value="${p.id}" th:text="${p.name}"
+                        th:selected="${p.id == selected.id}">Property</option>
+            </select>
+            <button type="submit" class="btn">Show</button>
+        </form>
+    </div>
+
+    <section class="panel" th:if="${#lists.isEmpty(properties)}">
+        <p class="muted">Add a property first, and its local weather will appear here.</p>
+    </section>
+
+    <th:block th:if="${report != null}">
+        <section class="panel weather-now">
+            <p class="muted" th:text="${selected.address}">Address</p>
+            <div class="temp" th:text="|${#numbers.formatDecimal(report.temperatureF(), 1, 0)}°F|">70°F</div>
+            <p class="conditions" th:text="${report.description()}">Clear</p>
+            <p th:text="|Humidity ${report.humidity()}% · Wind ${#numbers.formatDecimal(report.windMph(), 1, 0)} mph|">
+                Humidity 30% · Wind 5 mph</p>
+            <p th:text="|Today: ${report.today().rainChance()}% chance of rain, ${#numbers.formatDecimal(report.today().et0Inches(), 1, 2)} in. evapotranspiration|">
+                Today</p>
+            <p th:if="${report.live()}" class="badge live"
+               th:text="|Live data · updated ${#temporals.format(report.fetchedAt(), 'h:mm a')}|">Live</p>
+            <p th:unless="${report.live()}" class="badge sim">Weather service unavailable: showing simulated data</p>
+        </section>
+
+        <section class="panel">
+            <h2>7-day forecast</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Conditions</th>
+                    <th>High / Low</th>
+                    <th>Rain chance</th>
+                    <th>Rain (in)</th>
+                    <th>Evapotranspiration (in)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${report.days()}">
+                    <td th:text="${#temporals.format(d.date(), 'EEE, MMM d')}">Thu, Oct 15</td>
+                    <td th:text="${d.description()}">Clear</td>
+                    <td th:text="|${#numbers.formatDecimal(d.highF(), 1, 0)}° / ${#numbers.formatDecimal(d.lowF(), 1, 0)}°|">70 / 40</td>
+                    <td th:text="|${d.rainChance()}%|">10%</td>
+                    <td th:text="${#numbers.formatDecimal(d.rainInches(), 1, 2)}">0.00</td>
+                    <td th:text="${#numbers.formatDecimal(d.et0Inches(), 1, 2)}">0.12</td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="muted">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></p>
+        </section>
+    </th:block>
+</main>
 </body>
 </html>
