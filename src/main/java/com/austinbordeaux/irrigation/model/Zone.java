@@ -39,6 +39,9 @@ public class Zone extends BaseEntity {
     @Column(nullable = false)
     private boolean online = true;
 
+    @Column(nullable = false)
+    private double currentMoisture;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
@@ -57,6 +60,7 @@ public class Zone extends BaseEntity {
         this.flowRateGpm = flowRateGpm;
         this.moistureThreshold = moistureThreshold;
         this.targetMoisture = targetMoisture;
+        this.currentMoisture = (this.moistureThreshold + this.targetMoisture) / 2;
     }
 
     @Override
@@ -140,5 +144,18 @@ public class Zone extends BaseEntity {
     public boolean isOnline() { return online; }
 
     public void setOnline(boolean online) { this.online = online; }
+
+    public double getCurrentMoisture() { return currentMoisture; }
+
+    public void setCurrentMoisture(double currentMoisture) { this.currentMoisture = currentMoisture; }
+
+    public boolean hasActiveSchedule() { return schedules.stream().anyMatch(Schedule::isEnabled); }
+
+    public boolean isRunnable() { return online && hasActiveSchedule(); }
+
+    public String getStatusLabel() { if (!online) { return "Offline"; }
+        if (!hasActiveSchedule()) { return "Paused"; }
+        return "Online";
+    }
 
 }
