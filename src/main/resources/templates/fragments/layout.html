@@ -20,6 +20,7 @@
         <a th:href="@{/}" th:classappend="${currentPath == '/'} ? 'active'">Home</a>
         <a th:href="@{/properties}" th:classappend="${#strings.startsWith(currentPath, '/properties')} ? 'active'">Properties</a>
         <a th:href="@{/weather}" th:classappend="${#strings.startsWith(currentPath, '/weather')} ? 'active'">Weather</a>
+        <a th:href="@{/history}" th:classappend="${#strings.startsWith(currentPath, '/history')} ? 'active'">History</a>
         <a th:href="@{/reports}" th:classappend="${#strings.startsWith(currentPath, '/reports')} ? 'active'">Reports</a>
         <a th:href="@{/savings}" th:classappend="${#strings.startsWith(currentPath, '/savings')} ? 'active'">Savings</a>
         <a th:href="@{/contact}" th:classappend="${#strings.startsWith(currentPath, '/contact')} ? 'active'">Contact</a>

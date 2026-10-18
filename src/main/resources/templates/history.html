@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Watering history')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: tabs}"></header>
+
+<main class="container">
+    <div class="title-bar">
+        <h1>Watering history</h1>
+        <p class="muted">Search every watering decision on your properties.</p>
+    </div>
+
+    <section class="panel">
+        <form th:action="@{/history}" th:object="${filter}" method="get" class="filters" novalidate>
+            <div class="form-row">
+                <label for="propertyId">Property</label>
+                <select th:field="*{propertyId}">
+                    <option value="">All properties</option>
+                    <option th:each="p : ${properties}" th:value="${p.id}" th:text="${p.name}">Property</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="zone">Zone name contains</label>
+                <input type="text" th:field="*{zone}" maxlength="60" placeholder="e.g. lawn">
+                <p class="error" th:if="${#fields.hasErrors('zone')}" th:errors="*{zone}"></p>
+            </div>
+            <div class="form-row">
+                <label for="outcome">Outcome</label>
+                <select th:field="*{outcome}">
+                    <option value="">Watered and skipped</option>
+                    <option th:each="o : ${outcomes}" th:value="${o}" th:text="${o.label}">Watered</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="from">From</label>
+                <input type="date" th:field="*{from}">
+                <p class="error" th:if="${#fields.hasErrors('from')}" th:errors="*{from}"></p>
+            </div>
+            <div class="form-row">
+                <label for="to">To</label>
+                <input type="date" th:field="*{to}">
+                <p class="error" th:if="${#fields.hasErrors('to')}" th:errors="*{to}"></p>
+            </div>
+            <div class="form-row filter-buttons">
+                <button type="submit" class="btn primary">Search</button>
+                <a th:href="@{/history}" class="btn">Reset</a>
+            </div>
+            <p class="error" th:if="${#fields.hasErrors('dateOrderValid')}" th:errors="*{dateOrderValid}"></p>
+            <p class="error" th:if="${#fields.hasErrors('rangeValid')}" th:errors="*{rangeValid}"></p>
+        </form>
+    </section>
+
+    <section class="panel" th:if="${result != null}">
+
+        <div class="summary">
+            <div><strong th:text="${result.total()}">0</strong><span class="muted">events</span></div>
+            <div><strong th:text="${result.watered()}">0</strong><span class="muted">watered</span></div>
+            <div><strong th:text="${result.skipped()}">0</strong><span class="muted">skipped</span></div>
+            <div><strong th:text="${#numbers.formatDecimal(result.gallonsUsed(), 1, 'COMMA', 0, 'POINT')}">0</strong>
+                <span class="muted">gallons used</span></div>
+            <div><strong class="saved" th:text="${#numbers.formatDecimal(result.gallonsSaved(), 1, 'COMMA', 0, 'POINT')}">0</strong>
+                <span class="muted">gallons saved</span></div>
+        </div>
+        <p class="muted" th:if="${result.truncated()}">Showing the newest 500 events. Narrow the filters to see older ones.</p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>When</th>
+                <th>Property</th>
+                <th>Zone</th>
+                <th>Outcome</th>
+                <th>Probability</th>
+                <th>Soil before</th>
+                <th>Gallons used</th>
+                <th>Gallons saved</th>
+                <th>Trigger</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${result.events()}">
+                <td th:text="${#temporals.format(e.runAt, 'MMM d, yyyy h:mm a')}">Oct 15, 2026 5:30 AM</td>
+                <td th:text="${e.zone.property.name}">Maple Street Home</td>
+                <td th:text="${e.zone.name}">Front Lawn</td>
+                <td><span class="outcome" th:classappend="${#strings.toLowerCase(e.outcome.name())}"
+                          th:text="${e.outcome.label}">Watered</span></td>
+                <td th:text="|${e.probability}%|">84%</td>
+                <td th:text="|${#numbers.formatDecimal(e.moistureBefore, 1, 0)}%|">18%</td>
+                <td th:text="${#numbers.formatDecimal(e.gallonsUsed, 1, 0)}">160</td>
+                <td th:text="${#numbers.formatDecimal(e.gallonsSaved, 1, 0)}">0</td>
+                <td th:text="${e.manual} ? 'Manual' : 'Scheduled'">Scheduled</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(result.events())}">
+                <td colspan="9" class="muted">No watering events match these filters.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
