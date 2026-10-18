@@ -1,11 +1,90 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Reports')}"></head>
 <body>
 <header th:replace="~{fragments/layout :: tabs}"></header>
-<div class="panel">
-    <h2>Reports</h2>
-    <p class="muted">Watering reports will appear here.</p>
-</div>
+
+<main class="container">
+    <div class="title-bar">
+        <h1>Reports</h1>
+        <p class="muted">Water used by each zone compared with a fixed timer.</p>
+    </div>
+
+    <section class="panel">
+        <form th:action="@{/reports}" th:object="${range}" method="get" class="filters" novalidate>
+            <div class="form-row">
+                <label for="from">From</label>
+                <input type="date" th:field="*{from}">
+                <p class="error" th:if="${#fields.hasErrors('from')}" th:errors="*{from}"></p>
+            </div>
+            <div class="form-row">
+                <label for="to">To</label>
+                <input type="date" th:field="*{to}">
+                <p class="error" th:if="${#fields.hasErrors('to')}" th:errors="*{to}"></p>
+            </div>
+            <div class="form-row filter-buttons">
+                <button type="submit" class="btn primary">Run report</button>
+                <a th:if="${report != null}"
+                   th:href="@{/reports/usage.csv(from=${range.from}, to=${range.to})}" class="btn">Download CSV</a>
+            </div>
+            <p class="error" th:if="${#fields.hasErrors('dateOrderValid')}" th:errors="*{dateOrderValid}"></p>
+            <p class="error" th:if="${#fields.hasErrors('rangeValid')}" th:errors="*{rangeValid}"></p>
+        </form>
+    </section>
+
+    <section class="panel report" th:if="${report != null}">
+        <h2 th:text="${report.title}">Water Usage Report</h2>
+        <p class="muted"
+           th:text="|Period: ${#temporals.format(report.from, 'MMM d, yyyy')} – ${#temporals.format(report.to, 'MMM d, yyyy')} · Generated ${#temporals.format(report.generatedAt, 'MMM d, yyyy h:mm a')}|">
+            Period</p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Property</th>
+                <th>Zone</th>
+                <th>Plant type</th>
+                <th>Runs</th>
+                <th>Watered</th>
+                <th>Skipped</th>
+                <th>Gallons used</th>
+                <th>Fixed-timer gallons</th>
+                <th>Gallons saved</th>
+                <th>% saved</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="z : ${report.zones}">
+                <td th:text="${z.property()}">Maple Street Home</td>
+                <td th:text="${z.zone()}">Front Lawn</td>
+                <td th:text="${z.plantType()}">Turf</td>
+                <td th:text="${z.runs()}">30</td>
+                <td th:text="${z.watered()}">22</td>
+                <td th:text="${z.skipped()}">8</td>
+                <td th:text="${#numbers.formatDecimal(z.gallonsUsed(), 1, 'COMMA', 0, 'POINT')}">3,520</td>
+                <td th:text="${#numbers.formatDecimal(z.baselineGallons(), 1, 'COMMA', 0, 'POINT')}">4,800</td>
+                <td th:text="${#numbers.formatDecimal(z.gallonsSaved(), 1, 'COMMA', 0, 'POINT')}">1,280</td>
+                <td th:text="|${#numbers.formatDecimal(z.percentSaved(), 1, 1)}%|">26.7%</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(report.zones)}">
+                <td colspan="10" class="muted">No watering activity in this period.</td>
+            </tr>
+            </tbody>
+            <!--/* Totals row. */-->
+            <tfoot th:with="t=${report.totals}">
+            <tr>
+                <td colspan="3"><strong>Total</strong></td>
+                <td th:text="${t.runs()}">0</td>
+                <td th:text="${t.watered()}">0</td>
+                <td th:text="${t.skipped()}">0</td>
+                <td th:text="${#numbers.formatDecimal(t.gallonsUsed(), 1, 'COMMA', 0, 'POINT')}">0</td>
+                <td th:text="${#numbers.formatDecimal(t.baselineGallons(), 1, 'COMMA', 0, 'POINT')}">0</td>
+                <td class="saved" th:text="${#numbers.formatDecimal(t.gallonsSaved(), 1, 'COMMA', 0, 'POINT')}">0</td>
+                <td class="saved" th:text="|${#numbers.formatDecimal(t.percentSaved(), 1, 1)}%|">0%</td>
+            </tr>
+            </tfoot>
+        </table>
+    </section>
+</main>
 </body>
 </html>
