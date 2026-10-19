@@ -60,6 +60,9 @@ public class DemoDataSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        if (propertyRepository.count() > 0) {
+            return;
+        }
         seedPlantTypes();
         seedUsers();
         seedProperties();
@@ -94,9 +97,6 @@ public class DemoDataSeeder implements ApplicationRunner {
     }
 
     private void seedProperties() {
-        if (propertyRepository.count() > 0) {
-            return;
-        }
         Map<String, PlantType> types = new HashMap<>();
         for (PlantType type : plantTypeRepository.findAllByOrderByNameAsc()) {
             types.put(type.getName(), type);
