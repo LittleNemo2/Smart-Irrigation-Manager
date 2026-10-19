@@ -1,27 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in | Smart Irrigation Manager</title>
+    <title>Sign in · Smart Irrigation Manager</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Smart Irrigation Manager</h1>
-<h2>Sign in</h2>
+<main class="login-wrap">
+    <section class="login-card">
+        <h1>Smart Irrigation Manager</h1>
+        <p class="login-sub">Bordeaux Landscaping LLC · Mountain Home, Idaho</p>
 
-<p th:if="${param.error}" style="color:#b00020">Invalid username or password.</p>
-<p th:if="${param.logout}" style="color:#1d6b3d">You have been signed out.</p>
+        <p class="login-error" th:if="${param.error}">Invalid username or password.</p>
+        <p class="success" th:if="${param.logout}">You have been signed out.</p>
 
-<form th:action="@{/login}" method="post">
-    <p>
-        <label for="username">Username</label><br>
-        <input type="text" id="username" name="username" required autofocus>
-    </p>
-    <p>
-        <label for="password">Password</label><br>
-        <input type="password" id="password" name="password" required>
-    </p>
-    <button type="submit">Sign in</button>
-</form>
+        <form th:action="@{/login}" method="post" class="login-form">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+            <button type="submit" class="login-btn">Sign in</button>
+        </form>
+    </section>
+</main>
 </body>
 </html>
