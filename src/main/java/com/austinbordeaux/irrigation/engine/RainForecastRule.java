@@ -19,7 +19,8 @@ public class RainForecastRule extends AbstractDecisionRule {
     protected int adjustment(DecisionContext c) {
         int chance = Math.max(c.today().rainChance(), c.tomorrow().rainChance());
         double rain = c.today().rainInches() + c.tomorrow().rainInches();
-        int adjustment = -(int) Math.round(chance * 0.4);
+        double amountWeight = 0.5 + 0.5 * Math.min(1.0, rain / SOAKING_RAIN_INCHES);
+        int adjustment = -(int) Math.round(chance * 0.4 * amountWeight);
         if (rain >= SOAKING_RAIN_INCHES) {
             adjustment -= 20;
         }
@@ -34,6 +35,9 @@ public class RainForecastRule extends AbstractDecisionRule {
                 chance, rain);
         if (adjustment <= -30) {
             return text + ": rain should do the watering";
+        }
+        if (rain > 0 && rain < SOAKING_RAIN_INCHES && chance >= 50) {
+            return text + ": only light rain, not enough to skip on its own";
         }
         if (adjustment == 0) {
             return text + ": dry forecast";
