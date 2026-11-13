@@ -19,6 +19,23 @@ Sign in as `homeowner`, `landscaper`, or `admin`. The password for all three is 
 - **Security:** Spring Security login, BCrypt password hashing, three roles (homeowner, landscaper, admin), an admin-only feedback inbox, and custom 403 and 404 pages.
 - **Validation:** Bean Validation on every form, including cross-field rules (the dry threshold must be below the target moisture) and day-of-week checks.
 
+## JSON API
+
+`GET /api/properties/{propertyId}/zones/{zoneId}/decision` returns what the decision engine would do for a zone right now, without running the valve or saving anything. The response shows the probability, the outcome, and each rule's adjustment and reason, and it reports whether live or simulated weather was used. It requires a signed-in session and only returns zones the user owns. Other users' zones return 404, and requests without a session get 401.
+
+```json
+{
+  "zone": "Front Lawn",
+  "probability": 100,
+  "willWater": true,
+  "level": "high",
+  "rules": [
+    { "rule": "Soil moisture", "adjustment": 46, "reason": "Soil is 15% (threshold 20%, target 32%): below threshold, needs water" }
+  ],
+  "liveWeather": true
+}
+```
+
 ## Architecture
 
 ```
