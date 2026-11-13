@@ -1,5 +1,6 @@
 package com.austinbordeaux.irrigation.service;
 
+import com.austinbordeaux.irrigation.metrics.IrrigationMetrics;
 import com.austinbordeaux.irrigation.engine.Decision;
 import com.austinbordeaux.irrigation.engine.IrrigationDecisionEngine;
 import com.austinbordeaux.irrigation.hardware.SoilWaterModel;
@@ -36,11 +37,12 @@ public class IrrigationService {
     private final PropertyService propertyService;
     private final ZoneRepository zoneRepository;
     private final SimulatedWeatherClient simulatedWeather;
+    private final IrrigationMetrics metrics;
 
     public IrrigationService(IrrigationDecisionEngine decisionEngine, ValveController valveController,
                              WateringEventRepository eventRepository, WeatherService weatherService,
                              PropertyService propertyService, ZoneRepository zoneRepository,
-                             SimulatedWeatherClient simulatedWeather) {
+                             SimulatedWeatherClient simulatedWeather, IrrigationMetrics metrics) {
         this.decisionEngine = decisionEngine;
         this.valveController = valveController;
         this.eventRepository = eventRepository;
@@ -48,6 +50,7 @@ public class IrrigationService {
         this.propertyService = propertyService;
         this.zoneRepository = zoneRepository;
         this.simulatedWeather = simulatedWeather;
+        this.metrics = metrics;
     }
 
     public WateringEvent runZone(Zone zone, WeatherReport weather, LocalDateTime when,
@@ -75,7 +78,7 @@ public class IrrigationService {
             if (!zone.isOnline() || !zone.hasActiveSchedule()) {
                 continue;
             }
-            runZone(zone, weather, now, longestActiveMinutes(zone), true);
+            metrics.recordDecision(runZone(zone, weather, now, longestActiveMinutes(zone), true));
             checked++;
         }
         return checked;
@@ -96,7 +99,7 @@ public class IrrigationService {
                 if (due) {
                     Property property = zone.getProperty();
                     WeatherReport weather = weatherService.forecast(property.getLatitude(), property.getLongitude());
-                    runZone(zone, weather, now, schedule.getDurationMinutes(), false);
+                    metrics.recordDecision(runZone(zone, weather, now, schedule.getDurationMinutes(), false));
                     ran++;
                 }
             }
