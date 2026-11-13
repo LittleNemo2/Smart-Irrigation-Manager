@@ -1,5 +1,8 @@
 # Smart Irrigation Manager
 
+[![CI](https://github.com/LittleNemo2/Smart-Irrigation-Manager/actions/workflows/ci.yml/badge.svg)](https://github.com/LittleNemo2/Smart-Irrigation-Manager/actions/workflows/ci.yml)
+![Coverage](https://raw.githubusercontent.com/LittleNemo2/Smart-Irrigation-Manager/badges/jacoco.svg)
+
 A full-stack Spring Boot web app that decides when to water a landscape. It manages properties, irrigation zones, and schedules for a landscaping business and its customers. Before each scheduled cycle, a rules-based decision engine combines soil moisture, the rain forecast, and evapotranspiration to decide whether a zone actually needs water, then reports how much water was saved.
 
 **Live demo:** https://smart-irrigation.bluemushroom-a80bb0a0.westus.azurecontainerapps.io/
@@ -37,7 +40,7 @@ New behavior plugs in without changing existing classes:
 
 ## Tech stack
 
-Java 21, Spring Boot 4, Spring MVC, Spring Data JPA, Spring Security, Thymeleaf, H2 (development), PostgreSQL (production), JUnit 5, AssertJ, Docker, Azure
+Java 21, Spring Boot 4, Spring MVC, Spring Data JPA, Spring Security, Thymeleaf, H2 (development), PostgreSQL (production), JUnit 5, AssertJ, Testcontainers, JaCoCo, Spring Boot Actuator, Micrometer, Prometheus, Grafana, Docker, GitHub Actions, Azure
 
 ## Running locally
 
@@ -56,17 +59,38 @@ docker compose up --build
 ## Tests
 
 ```bash
-./mvnw test
+./mvnw verify
 ```
 
-The unit tests cover:
+Every push and pull request runs the full suite in GitHub Actions and publishes a JaCoCo coverage report.
 
-- the decision engine (dry soil, wet soil, heavy rain, light drizzle, offline zones, and paused schedules);
-- the zone form validation rules;
-- CSV export escaping and injection protection;
-- a Spring context-load test.
+- **Unit tests** cover the decision engine (dry soil, wet soil, heavy rain, light drizzle, offline zones, and paused schedules), zone form validation, CSV export escaping and injection protection, and the custom metrics.
+- **Integration tests** start the whole application against a real PostgreSQL database in Docker (Testcontainers), the same database used in production. They check data seeding, the history search filters, per-owner data scoping, the ownership checks, and that report totals match the history. They're skipped automatically when Docker isn't running.
 
 A failing drizzle test led to a fix: the rain rule now weights its penalty by the expected rainfall instead of only the chance of rain.
+
+## Observability
+
+The app exposes Spring Boot Actuator health checks and Prometheus metrics on a separate management port (8081) that isn't exposed to the public internet. Alongside the standard JVM and HTTP metrics, it publishes custom Micrometer metrics:
+
+| Metric | What it tracks |
+|---|---|
+| `irrigation.decisions` | Watering decisions, tagged by outcome (watered/skipped) and trigger (scheduled/manual) |
+| `irrigation.water.used`, `irrigation.water.saved` | Gallons used and saved per decision |
+| `irrigation.zones.online` | Zones whose controllers are online |
+| `weather.fetch` | Open-Meteo API latency, tagged success or fallback |
+| `weather.cache.requests` | Forecast cache hits and misses |
+
+To run the app with Prometheus and a pre-built Grafana dashboard:
+
+```bash
+docker compose up --build
+```
+
+- App: http://localhost:8080 (use **Run check now** on a property to generate decisions)
+- Grafana dashboard: http://localhost:3000
+- Prometheus: http://localhost:9090
+- Raw metrics: http://localhost:8081/actuator/prometheus
 
 ## Deployment
 
